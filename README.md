@@ -3,9 +3,9 @@ Github Repo Search
 
 ## About
 
-This Github Repo Search retrieves information on repositories matching a search query parameter (q) and sorts the data according to the repository stars.
+Github Repo Search retrieves information on repositories matching a provided search query and sorts the data according to the repository stars.
 
-It also allows for further retrieval on details of individual repositories like recent commits, fork and fork user's bio.
+It is a mobile friendly application which also allows for further retrieval on details of individual repositories like recent commits, fork and fork user's bio.
 
 ## Bootstrapping Steps
 
@@ -22,13 +22,14 @@ The application has two external dependencies
 > virtual environment
 > flask (micro framework)
 > requests (simple HTTP library)
+> python-dotenv
 
 To Authenticate against Github providing more repositories to view (**Optional)
-> Open your terminal and export your github credentials (**Optional)
+> Update the .env environment variable file in the project's root (**Optional)
 
 ```shell script
-export GitHub_USERNAME= <Your_Personal_GitHub_Username>
-export GitHub_PASSWORD= <Your_Personal_GitHub_Password>
+GitHub_USERNAME=<Your_Personal_GitHub_Username>
+GitHub_PASSWORD=<Your_Personal_GitHub_password>
 ```
 
 To run application, do the following:

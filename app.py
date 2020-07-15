@@ -1,4 +1,5 @@
 import os
+from os.path import join, dirname
 import json
 from multiprocessing.pool import ThreadPool
 from time import time as timer
@@ -6,8 +7,14 @@ from flask import Flask, request, render_template, jsonify
 import requests
 from datetime import date
 import math
+from dotenv import load_dotenv
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
+
+base_search_url = 'https://api.github.com/search/repositories'
 
 
 @app.context_processor
@@ -45,18 +52,28 @@ def fetch_repo_details():
     commit_url = "{}/commits?per_page=3".format(api_url)
     fork_url = "{}/forks?per_page=1".format(api_url)
 
-    header = {'username': os.getenv('GitHub_USERNAME'), 'password': os.getenv('GitHub_PASSWORD')}
+    header = {'username': os.environ.get('GitHub_USERNAME'), 'password': os.environ.get('GitHub_PASSWORD')}
 
-    commit_resp = requests.get(commit_url, headers=header)
-    commit_data = json.loads(commit_resp.content)
+    try:
+        commit_resp = requests.get(commit_url, headers=header)
+        commit_data = json.loads(commit_resp.content)
+    except Exception as e:
+        print('Error fetching commits ', e)
+        commit_data = []
+        pass
 
     if type(commit_data) == dict:
         results["commits"] = []
     else:
         results["commits"] = commit_data
 
-    fork_resp = requests.get(fork_url, headers=header)
-    fork_json_resp = json.loads(fork_resp.content)
+    try:
+        fork_resp = requests.get(fork_url, headers=header)
+        fork_json_resp = json.loads(fork_resp.content)
+    except Exception as e:
+        print('Error fetching fork ', e)
+        fork_json_resp = []
+        pass
 
     fork_data = fork_json_resp[0] if len(fork_json_resp) >= 1 else None
 
@@ -64,9 +81,14 @@ def fetch_repo_details():
     fork_owner_bio = ""
 
     if fork_data:
-        fork_owner_resp = requests.get(fork_data.get('url', ''), headers=header)
-        fork_owner_data = json.loads(fork_owner_resp.content)
-        fork_owner_bio = fork_owner_data.get("bio", None)
+        try:
+            fork_owner_resp = requests.get(fork_data.get('url', ''), headers=header)
+            fork_owner_data = json.loads(fork_owner_resp.content)
+            fork_owner_bio = fork_owner_data.get("bio", None)
+        except Exception as e:
+            print('Error fetching fork user details ', e)
+            fork_owner_bio = None
+            pass
 
     results['fork_owner_bio'] = fork_owner_bio
     return jsonify(results)
@@ -83,14 +105,20 @@ def index():
     results = dict(total_count=0, items=[])
 
     # query github repository using search term
-    url = 'https://api.github.com/search/repositories?sort=stargazers_count&order=desc&page={}&per_page=10&q={}'.format(
+    url_args = '?sort=stargazers_count&order=desc&page={}&per_page=10&q={}'.format(
         page, search_query)
 
-    headers = {'Accept': 'application/vnd.github.v3+json'}
-    resp = requests.get(url, headers=headers)
+    url = base_search_url + url_args
 
-    if resp.status_code == 200:
-        results = json.loads(resp.content)
+    headers = {'Accept': 'application/vnd.github.v3+json'}
+    try:
+        resp = requests.get(url, headers=headers)
+
+        if resp.status_code == 200:
+            results = json.loads(resp.content)
+    except Exception as e:
+        print('Error connecting to GitHub search ', e)
+        raise e
 
     total_count = int(results.get('total_count'))
 

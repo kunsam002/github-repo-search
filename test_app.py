@@ -44,8 +44,8 @@ class TestFetchRepo(unittest.TestCase):
 
     def test_post_fetch_repo_details_page(self):
         result = app.fetch_repo_details()
-        assert 3 == self.requests_mock.get.call_count
-        assert 6 == self.json_mock.loads.call_count
+        self.assertEqual(self.requests_mock.get.call_count, 3)
+        self.assertEqual(self.json_mock.loads.call_count, 6)
         self.assertTrue(self.request_mock.method)
         self.assertTrue(self.jsonify_mock.called)
         self.assertTrue(self.requests_mock.get.called)
@@ -58,7 +58,7 @@ class TestFetchRepo(unittest.TestCase):
 
         app.fetch_repo_details()
 
-        assert 0 == self.requests_mock.get.call_count
+        self.assertEqual(self.requests_mock.get.call_count, 0)
         self.assertFalse(self.jsonify_mock.called)
         self.assertFalse(self.requests_mock.get.called)
 
@@ -93,16 +93,16 @@ class TestIndexPage(unittest.TestCase):
 
     def test_index_call_with_results(self):
         app.index()
-        assert 2 == self.requests_mock.get.call_count
-        assert 2 == self.request_mock.args.get.call_count
-        assert 1 == self.json_mock.loads.call_count
+        self.assertEqual(self.requests_mock.get.call_count, 2)
+        self.assertEqual(self.request_mock.args.get.call_count, 2)
+        self.assertEqual(self.json_mock.loads.call_count, 1)
         self.assertTrue(self.requests_mock.get.called)
 
     def test_index_call_with_empty_results(self):
         self.requests_mock.get().status_code = 500
-        response = app.index()
-        assert 2 == self.request_mock.args.get.call_count
-        assert 0 == self.json_mock.loads.call_count
+        app.index()
+        self.assertEqual(self.request_mock.args.get.call_count, 2)
+        self.assertEqual(self.json_mock.loads.call_count, 0)
         self.assertTrue(self.requests_mock.get.called)
 
 
