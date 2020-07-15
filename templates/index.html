@@ -1,0 +1,140 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <div class="my-3"><h5>There are <strong>{{ results.total_count }}</strong> projects found on GitHub matching the
+        search <i>{{ search_query }}</i>.</h5></div>
+    {% if total_count > 0 %}
+        <table class="table table-hover table-striped">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Owner</th>
+                <th scope="col">Stars</th>
+                <th scope="col">Link</th>
+                <th scope="col">Details</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for obj in results['items'] %}
+                <tr>
+                    <th scope="row">{{ obj.name }}</th>
+                    <td>{{ obj.owner.login }}</td>
+                    <td>{{ obj.stargazers_count }}</td>
+                    <td><a href="{{ obj.html_url }}" target="_blank">{{ obj.full_name }}</a></td>
+                    <td>
+                        <button class="btn btn-md btn-outline-dark" onclick="prepareLoad({{ loop.index }})">
+                            Details
+                        </button>
+                        <div id="reactjs-root{{ loop.index }}" data-api_url="{{ obj.url }}"
+                             data-repo_name="{{ obj.name }}"></div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        {% include 'snippets/pagination.html' %}
+    {% else %}
+        <div class="text-center mb-5 mt-5">
+            <img class="mb-4" src="{{ url_for('static', filename='images/github.png') }}" alt="" width="50">
+            <h1 class="h3 mb-3 font-weight-normal">No Result Found!</h1>
+            <p>Please try again with another search term.</p>
+        </div>
+    {% endif %}
+{% endblock body %}
+{% block script %}
+    <script type="text/babel">
+        class RepoDetails extends React.Component {
+            state = {
+                commits: [],
+                fork: {},
+                forkOwnerBio: '',
+                renderChild: true
+            };
+
+            fetchRepoDetails = async () => {
+                const endpoint = "http://127.0.0.1:5000/fetch_repo_details"
+                const payload = {'apiUrl': this.props.apiUrl};
+                const {data} = await axios.post(endpoint, payload);
+                return data;
+            };
+
+            async componentDidMount() {
+                const {commits, fork, fork_owner_bio: forkOwnerBio} = await this.fetchRepoDetails()
+                this.setState({commits, fork, forkOwnerBio});
+            }
+
+            handleChildUnmount = () => {
+                this.setState({renderChild: false});
+            }
+
+            render() {
+                const {repoName} = this.props;
+                const {commits, fork, forkOwnerBio} = this.state;
+                return (
+                    this.state.renderChild ?
+                        <Child unmountMe={this.handleChildUnmount} repoName={repoName} commits={commits} fork={fork}
+                               forkOwnerBio={forkOwnerBio}/> : null
+                )
+            }
+
+        }
+
+        class Child extends React.Component {
+
+            render() {
+                const {repoName, commits, fork, forkOwnerBio, unmountMe} = this.props;
+
+                const displayStyle = {display: "block"}
+
+                return (
+                    <div className="modal-backdrop">
+                        <div className="modal fade show" id="exampleModal" tabIndex="-1" role="dialog"
+                             aria-labelledby="exampleModalLabel" aria-hidden="false" style={displayStyle}>
+                            <div className="modal-dialog">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h5 className="modal-title" id="exampleModalLabel">GitHub Repo: {repoName}</h5>
+                                        <button type="button" className="close" data-dismiss="modal" aria-label="Close"
+                                                onClick={unmountMe}>
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <h5>Last 3 Committers</h5>
+                                        {commits.length > 0 ?
+                                            <ul>
+                                                {commits.map(commit =>
+                                                    <li key={commit.node_id}>
+                                                        <strong>@{commit.author ? commit.author.login : ''}</strong></li>
+                                                )}
+                                            </ul>
+                                            : <p/>}
+                                        <hr/>
+                                        <h5>Fork</h5>
+                                        <p>Last Fork was created
+                                            by <strong>{fork && fork.owner ? fork.owner.login : ''}</strong></p>
+                                        <q>Fork Owner's
+                                            Bio: {forkOwnerBio && forkOwnerBio.length > 0 ? forkOwnerBio : null}</q>
+                                    </div>
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-secondary" data-dismiss="modal"
+                                                onClick={unmountMe}>Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        function prepareLoad(index) {
+            var rootElement = document.getElementById('reactjs-root' + index);
+            ReactDOM.render(<RepoDetails apiUrl={rootElement.getAttribute('data-api_url')}
+                                         repoName={rootElement.getAttribute('data-repo_name')}/>, rootElement)
+        }
+
+    </script>
+
+{% endblock script %}
