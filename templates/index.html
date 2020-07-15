@@ -1,43 +1,51 @@
 {% extends 'layout.html' %}
 {% block body %}
-    <div class="my-3"><h5>There are <strong>{{ results.total_count }}</strong> projects found on GitHub matching the
-        search <i>{{ search_query }}</i>.</h5></div>
-    {% if total_count > 0 %}
-        <table class="table table-hover table-striped">
-            <thead class="thead-dark">
-            <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Owner</th>
-                <th scope="col">Stars</th>
-                <th scope="col">Link</th>
-                <th scope="col">Details</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for obj in results['items'] %}
+    {% if search_query and search_query != "" %}
+        <div class="my-3"><h5>There are <strong>{{ results.total_count }}</strong> projects found on GitHub matching the
+            search <i>{{ search_query }}</i>.</h5></div>
+        {% if total_count > 0 %}
+            <table class="table table-hover table-striped">
+                <thead class="thead-dark">
                 <tr>
-                    <th scope="row">{{ obj.name }}</th>
-                    <td>{{ obj.owner.login }}</td>
-                    <td>{{ obj.stargazers_count }}</td>
-                    <td><a href="{{ obj.html_url }}" target="_blank">{{ obj.full_name }}</a></td>
-                    <td>
-                        <button class="btn btn-md btn-outline-dark" onclick="prepareLoad({{ loop.index }})">
-                            Details
-                        </button>
-                        <div id="reactjs-root{{ loop.index }}" data-api_url="{{ obj.url }}"
-                             data-repo_name="{{ obj.name }}"></div>
-                    </td>
+                    <th scope="col">Name</th>
+                    <th scope="col">Owner</th>
+                    <th scope="col">Stars</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Details</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                {% for obj in results['items'] %}
+                    <tr>
+                        <th scope="row">{{ obj.name }}</th>
+                        <td>{{ obj.owner.login }}</td>
+                        <td>{{ obj.stargazers_count }}</td>
+                        <td><a href="{{ obj.html_url }}" target="_blank">{{ obj.full_name }}</a></td>
+                        <td>
+                            <button class="btn btn-md btn-outline-dark" onclick="prepareLoad({{ loop.index }})">
+                                Details
+                            </button>
+                            <div id="reactjs-root{{ loop.index }}" data-api_url="{{ obj.url }}"
+                                 data-repo_name="{{ obj.name }}"></div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
 
-        {% include 'snippets/pagination.html' %}
+            {% include 'snippets/pagination.html' %}
+        {% else %}
+            <div class="text-center mb-5 mt-5">
+                <img class="mb-4" src="{{ url_for('static', filename='images/github.png') }}" alt="" width="50">
+                <h1 class="h3 mb-3 font-weight-normal">No Result Found!</h1>
+                <p>Please try again with another search term.</p>
+            </div>
+        {% endif %}
     {% else %}
         <div class="text-center mb-5 mt-5">
             <img class="mb-4" src="{{ url_for('static', filename='images/github.png') }}" alt="" width="50">
-            <h1 class="h3 mb-3 font-weight-normal">No Result Found!</h1>
-            <p>Please try again with another search term.</p>
+            <h1 class="h3 mb-3 font-weight-normal">Welcome to GitHub Repo Search!</h1>
+            <p>Search for any repository on GitHub to get detailed information.</p>
         </div>
     {% endif %}
 {% endblock body %}

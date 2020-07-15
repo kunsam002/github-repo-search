@@ -23,25 +23,39 @@ The application has two external dependencies
 > flask (micro framework)
 > requests (simple HTTP library)
 
+To Authenticate against Github providing more repositories to view (**Optional)
+> Open your terminal and export your github credentials (**Optional)
+
+```shell script
+export GitHub_USERNAME= <Your_Personal_GitHub_Username>
+export GitHub_PASSWORD= <Your_Personal_GitHub_Password>
+```
+
 To run application, do the following:
 ``` git clone https://github.com/kunsam002/github-repo-search.git ```
 
 > change directory to folder github-repo-search
 
 > *One time execution (optional)* - Setup a virtualenv by running the command within the application directory
-```bash
+```shell script
 virtualenv venv
 ```
 > run the command line command; ``` source venv/bin/activate ```  to activate the virtual environment with the dependencies pre-installed
 
 > *One time execution* - Install the dependencies and requirements 
-```bash
+```shell script
 pip install -r requirements.txt
 ```
-> run ```python app.py``` to start the application
+> run `python app.py` to start the application
 
-> open a browser and do GET request to e.g. http://localhost:5000/?q=kunsam002
+> open a browser and do a search request to e.g. http://localhost:5000/
 
+To run the test scripts:
+> run the command within the active virtual environment
+
+```shell script
+python -s test_app.py
+```
 
 ## Stack Used
 Python (Flask),
