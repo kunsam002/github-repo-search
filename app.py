@@ -21,7 +21,7 @@ def main_context():
 
 
 @app.route('/fetch_repo_details', methods=['POST'])
-def _fetch_repo_details():
+def fetch_repo_details():
     """
     fetch latest 3 commits, last fork and fork user's bio
     :param api_url:
@@ -29,7 +29,7 @@ def _fetch_repo_details():
     """
 
     if request.method == "GET":
-        abort(404)
+        return jsonify({})
 
     _data = {}
     if request.data:
@@ -57,6 +57,7 @@ def _fetch_repo_details():
 
     fork_resp = requests.get(fork_url, headers=header)
     fork_json_resp = json.loads(fork_resp.content)
+
     fork_data = fork_json_resp[0] if len(fork_json_resp) >= 1 else None
 
     results["fork"] = fork_data
@@ -68,8 +69,6 @@ def _fetch_repo_details():
         fork_owner_bio = fork_owner_data.get("bio", None)
 
     results['fork_owner_bio'] = fork_owner_bio
-
-    print(results)
     return jsonify(results)
 
 
